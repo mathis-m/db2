@@ -39,3 +39,7 @@ This is a simple todo app using .NET, React.js and mongodb.
 - ui = nginx hosting static files
 - api = Production
 - mongodb = just mongodb default image
+
+## Swagger UI
+The Api is ddocumented using swagger-ui.  
+The swagger ui enpoint can be found when executing in docker compose at [Swagger UI](http://localhost/api/swagger/index.html).
