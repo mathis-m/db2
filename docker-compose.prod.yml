@@ -1,0 +1,39 @@
+version: '3.4'
+
+services:
+  todo_api:
+    build:
+      context: ./src/TodoApi
+      dockerfile: TodoApi/Dockerfile
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mongodb_data_container:/data/db
+
+  ui:
+    build:
+      dockerfile: Dockerfile.prod
+      context: ./src/todo-ui
+    ports:
+      - "3000:3000"
+  server:
+    depends_on:
+      - api
+      - ui
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      context: ./src/server
+    ports:
+      - "80:80"
+
+volumes:
+  mongodb_data_container:
