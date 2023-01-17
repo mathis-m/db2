@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using TodoApi.Models;
 using TodoApi.Repositories;
@@ -58,5 +59,21 @@ public class UserService
     public IEnumerable<UserEntity> GetAllUsers()
     {
         return _context.Users.FromSqlRaw("GetUsers").ToList();
+    }
+
+    public int CountUsers()
+    {
+        var parameterReturn = new SqlParameter
+        {
+            ParameterName = "ReturnValue",
+            SqlDbType = System.Data.SqlDbType.Int,
+            Direction = System.Data.ParameterDirection.Output,
+        };
+
+        _context.Database.ExecuteSqlRaw("Exec @returnValue = [dbo].[CountUsers]", parameterReturn);
+
+        var returnValue = (int)parameterReturn.Value;
+
+        return returnValue;
     }
 }

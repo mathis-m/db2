@@ -52,14 +52,20 @@ public class TodoService
     public async Task UpdateAsync(int id, string todoContent, int todoPriority, List<int> todoSharedWith,
         bool todoIsCompleted)
     {
+        var oldEntity = _repository.AsQueryable().AsNoTracking().Include(x => x.SharedWith).Include(x => x.Author).First(x => x.Id == id);
+        var currentUser = await _userService.GetCurrentUser();
+
+        if (oldEntity.Author.Id != currentUser.Id && oldEntity.SharedWith.All(user => user.Id != currentUser.Id))
+        {
+            throw new UnauthorizedAccessException("Cannot change not authored or shared todo");
+        }
+
         var entity = _repository.AsQueryable().First(x => x.Id == id);
         entity.IsCompleted = todoIsCompleted;
         entity.Content = todoContent;
         entity.Priority = todoPriority;
 
         await _repository.SaveChanges();
-
-        var oldEntity = _repository.AsQueryable().AsNoTracking().Include(x => x.SharedWith).First(x => x.Id == id);
 
         var old = oldEntity.SharedWith.Where(sharedTodoUser => !todoSharedWith.Contains(sharedTodoUser.UserId)).ToList();
 
@@ -68,7 +74,8 @@ public class TodoService
             await _sharedRepository.DeleteByIdAsync(sharedTodoUser.Id);
         }
 
-        foreach (var userId in todoSharedWith.Where(userId => entity.SharedWith.All(x => x.UserId != userId)))
+        var userIds = todoSharedWith.Where(userId => oldEntity.SharedWith.FirstOrDefault(x => x.UserId == userId) == null);
+        foreach (var userId in userIds)
         {
             await _sharedRepository.InsertOneAsync(new SharedTodoUser { UserId = userId, TodoId = entity.Id });
         }
@@ -78,7 +85,15 @@ public class TodoService
 
     public async Task DeleteAsync(int id)
     {
-        var oldEntity = _repository.AsQueryable().AsNoTracking().Include(x => x.SharedWith).First(x => x.Id == id);
+        var oldEntity = _repository.AsQueryable().AsNoTracking().Include(x => x.SharedWith).Include(x => x.Author).First(x => x.Id == id);
+
+        var currentUser = await _userService.GetCurrentUser();
+
+        if (oldEntity.Author.Id != currentUser.Id && oldEntity.SharedWith.All(user => user.Id != currentUser.Id))
+        {
+            throw new UnauthorizedAccessException("Cannot delete not authored or shared todo");
+        }
+
 
         foreach (var sharedTodoUser in oldEntity.SharedWith)
         {

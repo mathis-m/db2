@@ -8,7 +8,7 @@ namespace TodoApi.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            var sp = @"CREATE PROCEDURE [dbo].[GetUsers]
+            var sp = @"CREATE OR ALTER PROCEDURE [dbo].[GetUsers]
                 AS
                 BEGIN
                     SET NOCOUNT ON;

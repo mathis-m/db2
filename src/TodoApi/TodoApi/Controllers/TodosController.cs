@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TodoApi.Models;
 using TodoApi.Services;
@@ -31,8 +32,17 @@ public class TodosController : ControllerBase
     [Authorize]
     public async Task Update([FromBody] UpdateTodoRequest todo)
     {
-        await _service.UpdateAsync(todo.Id, todo.Content, todo.Priority, todo.SharedWith ?? new List<int>(),
-            todo.IsCompleted);
+        try
+        {
+
+            await _service.UpdateAsync(todo.Id, todo.Content, todo.Priority, todo.SharedWith ?? new List<int>(),
+                todo.IsCompleted);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            HttpContext.Response.StatusCode = 403;
+            await HttpContext.Response.WriteAsync(ex.Message);
+        } 
     }
 
 
@@ -40,7 +50,15 @@ public class TodosController : ControllerBase
     [Authorize]
     public async Task Delete([FromRoute] int id)
     {
-        await _service.DeleteAsync(id);
+        try
+        {
+            await _service.DeleteAsync(id);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            HttpContext.Response.StatusCode = 403;
+            await HttpContext.Response.WriteAsync(ex.Message);
+        }
     }
 
     [HttpGet]

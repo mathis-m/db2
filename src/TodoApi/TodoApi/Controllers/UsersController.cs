@@ -31,4 +31,11 @@ public class UsersController : ControllerBase
             UserName = x.UserName,
         });
     }
+
+    [HttpGet("count")]
+    [Authorize]
+    public int CountUsers()
+    {
+        return _service.CountUsers();
+    }
 }
