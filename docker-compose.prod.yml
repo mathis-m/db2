@@ -8,15 +8,17 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:80
     depends_on:
-      - mongodb
+      - mssql
 
-  mongodb:
-    image: mongo:latest
+  mssql:
+    image: 'mcr.microsoft.com/mssql/server'
+    ports:
+        - '1433:1433'
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+        - ACCEPT_EULA=Y
+        - MSSQL_SA_PASSWORD=rootPassword1!
     volumes:
-      - mongodb_data_container:/data/db
+      - mssql_data_container:/data/db_mssql
 
   ui:
     build:
@@ -26,7 +28,7 @@ services:
       - "3000:3000"
   server:
     depends_on:
-      - api
+      - todo_api
       - ui
     restart: always
     build:
@@ -36,4 +38,4 @@ services:
       - "80:80"
 
 volumes:
-  mongodb_data_container:
+  mssql_data_container:

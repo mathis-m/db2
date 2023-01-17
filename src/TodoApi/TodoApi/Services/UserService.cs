@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using TodoApi.Models;
 using TodoApi.Repositories;
-using TodoApi.Repositories.Mongo;
+using TodoApi.Repositories.SQL;
 
 namespace TodoApi.Services;
 
@@ -9,10 +9,10 @@ public class UserService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IRepository<UserDocument> _userRepository;
+    private readonly IRepository<UserEntity> _userRepository;
 
     public UserService(IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager,
-        IRepository<UserDocument> userRepository)
+        IRepository<UserEntity> userRepository)
     {
         _httpContextAccessor = httpContextAccessor;
         _userManager = userManager;
@@ -32,7 +32,7 @@ public class UserService
 
     public async Task CreateUser(string email, string username, string firstName, string lastName)
     {
-        await _userRepository.InsertOneAsync(new UserDocument
+        await _userRepository.InsertOneAsync(new UserEntity
         {
             UserName = username,
             Email = email,
@@ -41,18 +41,18 @@ public class UserService
         });
     }
 
-    public async Task<UserDocument> GetUserByUserName(string userName)
+    public async Task<UserEntity> GetUserByUserName(string userName)
     {
         return await _userRepository.FindOneAsync(x => x.UserName == userName);
     }
 
-    public async Task<UserDocument> GetCurrentUser()
+    public async Task<UserEntity> GetCurrentUser()
     {
         var current = await GetCurrentApplicationUser();
         return await _userRepository.FindOneAsync(x => x.UserName == current.UserName);
     }
 
-    public IEnumerable<UserDocument> GetAllUsers()
+    public IEnumerable<UserEntity> GetAllUsers()
     {
         return _userRepository.AsQueryable().ToList();
     }

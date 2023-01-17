@@ -1,30 +1,24 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using MongoDB.Driver;
-using TodoApi.Configurations;
-using TodoApi.JsonConverters;
-using TodoApi.Models;
 using TodoApi.Repositories;
-using TodoApi.Repositories.Mongo;
-using TodoApi.Repositories.Mongo.Repositories;
+using TodoApi.Repositories.SQL;
+using TodoApi.Repositories.SQL.Repositories;
 using TodoApi.Services;
-using TodoApi.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-var mongoDbSettings = builder.Configuration.GetSection(nameof(MongoDbConfig)).Get<MongoDbConfig>();
 
 builder.Services
-    .AddIdentity<ApplicationUser, ApplicationRole>()
-    .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>
-    (
-        mongoDbSettings.ConnectionString, mongoDbSettings.Name
-    );
+    .AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -81,8 +75,7 @@ builder.Services
 
 builder.Services.AddHttpContextAccessor();
 builder.Services
-    .AddControllers()
-    .AddJsonOptions(opt => { opt.JsonSerializerOptions.Converters.Add(new JsonObjectIdConverter()); });
+    .AddControllers();
 
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
@@ -120,9 +113,6 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
-
-    c.OperationFilter<ObjectIdOperationFilter>();
-    c.SchemaFilter<ObjectIdSchemaFilter>();
 });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -132,16 +122,18 @@ builder.Services.AddSwaggerGen();
 // Services
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<TodoService>();
-builder.Services.AddSingleton<IMongoClient>(s =>
-    new MongoClient(mongoDbSettings.ConnectionString)
-);
+builder.Services.AddDbContext<AppDbContext, AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("MSSQL")));
+
 
 // Repositories
-builder.Services.AddScoped<IRepository<TodoDocument>, MongoRepository<TodoDocument>>();
-builder.Services.AddScoped<IRepository<UserDocument>, MongoRepository<UserDocument>>();
+builder.Services.AddScoped<IRepository<TodoEntity>, SQlRepository<TodoEntity>>();
+builder.Services.AddScoped<IRepository<UserEntity>, SQlRepository<UserEntity>>();
+builder.Services.AddScoped<IRepository<SharedTodoUser>, SQlRepository<SharedTodoUser>>();
 
 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment()) app.UseDeveloperExceptionPage();
@@ -153,5 +145,39 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+
+var isCompleted = false;
+var iterationCount = 0;
+
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    while (!isCompleted || iterationCount < 20)
+    {
+        try
+        {
+            await context.Database.MigrateAsync();
+            isCompleted = true;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            await Task.Delay(TimeSpan.FromSeconds(5));
+        }
+        finally
+        {
+            iterationCount++;
+        }
+    }
+
+}
+
+if (!isCompleted)
+{
+    throw new Exception("Could no apply migrations");
+}
 
 app.Run();

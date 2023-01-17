@@ -11,14 +11,28 @@ const suggestionProps = {
     suggestionsContainerAriaLabel: 'Suggested contacts',
 };
 
-const UserPicker = ({label, selectedChanged, initialSelectedUsersIds}) => {
-    const {users} = useTodoState();
-    const peopleList = useMemo(() => users.map(x => ({
+const UserPicker = ({label, selectedChanged, initialSelectedUsersIds, author}) => {
+    const {users, user } = useTodoState();
+
+    const all = useMemo(() => users.filter(x => {
+        if(author === x.userName)
+            return false;
+        if(author !== user?.userName) {
+            return true;
+        }
+        return x.id !== user?.id;
+    }).map(x => ({
         key: x.id,
         imageInitials: `${x.firstName[0]}${x.lastName[0]}`,
         text: `${x.firstName} ${x.lastName}`
-    })), [users]);
-    const [selected, setSelected] = React.useState(peopleList.filter(x => initialSelectedUsersIds.includes(x.key)));
+    })), [users, user?.id, author]);
+
+    const [selected, setSelected] = React.useState(all.filter(x => initialSelectedUsersIds.includes(x.key)));
+
+    const peopleList = useMemo(() => {
+        return all.filter(x => !selected.includes(x))
+    }, [selected, all]);
+
     const picker = useRef(null);
 
     const filterPersonasByText = useCallback((filterText) => {

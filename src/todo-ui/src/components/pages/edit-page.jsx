@@ -83,7 +83,7 @@ const EditPage = () => {
         <TextField value={content} multiline onChange={onContentChange} label={"Content"}/>
         <TextField value={priority + ""} onChange={onPriorityChange} label={"Priority"} type={"number"}/>
         <Toggle label="Completion" onText="Done" offText={"On going"} checked={isCompleted} onChange={onStateChange}/>
-        <UserPicker label={"Shared With"} selectedChanged={setUsers} initialSelectedUsersIds={editTodo.sharedWith} />
+        <UserPicker label={"Shared With"} selectedChanged={setUsers} initialSelectedUsersIds={editTodo.sharedWith} author={editTodo.userName}/>
         <Stack horizontal gap={5} horizontalAlign={"end"} className={styles.actions}>
             <PrimaryButton onClick={onSave}>Save</PrimaryButton>
             <DefaultButton onClick={onCancel}>Cancel</DefaultButton>

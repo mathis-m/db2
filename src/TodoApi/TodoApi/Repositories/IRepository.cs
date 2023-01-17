@@ -1,14 +1,14 @@
 ﻿using System.Linq.Expressions;
-using TodoApi.Repositories.Mongo;
 
 namespace TodoApi.Repositories;
 
-public interface IRepository<TDocument> where TDocument : IDocument
+public interface IRepository<TEntity> where TEntity: class
 {
-    IQueryable<TDocument> AsQueryable();
-    Task<TDocument> FindOneAsync(Expression<Func<TDocument, bool>> filterExpression);
-    Task<TDocument> FindByIdAsync(string id);
-    Task InsertOneAsync(TDocument document);
-    Task ReplaceOneAsync(TDocument document);
-    Task DeleteByIdAsync(string id);
+    IQueryable<TEntity> AsQueryable();
+    Task<TEntity> FindOneAsync(Expression<Func<TEntity, bool>> filterExpression);
+    Task<TEntity> FindByIdAsync(int id);
+    Task InsertOneAsync(TEntity entity);
+    Task ReplaceOneAsync(TEntity document);
+    Task DeleteByIdAsync(int id);
+    Task SaveChanges();
 }

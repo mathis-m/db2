@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TodoApi.Repositories.Mongo;
+using TodoApi.Models;
 using TodoApi.Services;
 
 namespace TodoApi.Controllers;
@@ -20,8 +20,15 @@ public class UsersController : ControllerBase
 
     [HttpGet]
     [Authorize]
-    public IEnumerable<UserDocument> GetUsers()
+    public IEnumerable<User> GetUsers()
     {
-        return _service.GetAllUsers();
+        return _service.GetAllUsers().Select(x => new User
+        {
+            Id = x.Id,
+            Email = x.Email,
+            FirstName = x.FirstName,
+            LastName = x.LastName,
+            UserName = x.UserName,
+        });
     }
 }
