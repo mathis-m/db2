@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using TodoApi.Models;
 using TodoApi.Repositories;
 using TodoApi.Repositories.SQL;
@@ -10,13 +11,15 @@ public class UserService
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IRepository<UserEntity> _userRepository;
+    private readonly AppDbContext _context;
 
     public UserService(IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager,
-        IRepository<UserEntity> userRepository)
+        IRepository<UserEntity> userRepository, AppDbContext context)
     {
         _httpContextAccessor = httpContextAccessor;
         _userManager = userManager;
         _userRepository = userRepository;
+        _context = context;
     }
 
     public async Task<ApplicationUser> GetCurrentApplicationUser()
@@ -54,6 +57,6 @@ public class UserService
 
     public IEnumerable<UserEntity> GetAllUsers()
     {
-        return _userRepository.AsQueryable().ToList();
+        return _context.Users.FromSqlRaw("GetUsers").ToList();
     }
 }
