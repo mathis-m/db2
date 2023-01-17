@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TodoApi.Models;
 using TodoApi.Repositories;
 using TodoApi.Repositories.SQL;
 
@@ -20,7 +19,6 @@ public class TodoService
 
     public async Task CreateAsync(string content, int priority, IList<int> sharedWith, bool completed)
     {
-
         var user = await _userService.GetCurrentUser();
         var todoEntity = new TodoEntity
         {
@@ -105,6 +103,7 @@ public class TodoService
 
     public async Task<TodoEntity> GetTodoById(int id)
     {
-        return await _repository.FindByIdAsync(id);
+        var entity = _repository.AsQueryable().AsNoTracking().Include(x => x.SharedWith).Include(x => x.Author).First(x => x.Id == id);
+        return entity;
     }
 }
