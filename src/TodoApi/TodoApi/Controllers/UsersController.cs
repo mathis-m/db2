@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TodoApi.Mongo;
+using TodoApi.Repositories.Mongo;
 using TodoApi.Services;
 
 namespace TodoApi.Controllers;

@@ -1,67 +1,67 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Bson;
 using TodoApi.Models;
-using TodoApi.Mongo;
+using TodoApi.Repositories.Mongo;
 using TodoApi.Services;
 
-namespace TodoApi.Controllers
+namespace TodoApi.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class TodosController : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class TodosController : ControllerBase
+    private readonly ILogger<TodosController> _logger;
+    private readonly TodoService _service;
+
+    public TodosController(ILogger<TodosController> logger, TodoService service)
     {
-        private readonly ILogger<TodosController> _logger;
-        private readonly TodoService _service;
+        _logger = logger;
+        _service = service;
+    }
 
-        public TodosController(ILogger<TodosController> logger, TodoService service)
+
+    [HttpPost]
+    [Authorize]
+    public async Task Create([FromBody] CreateTodoRequest todo)
+    {
+        await _service.CreateAsync(todo.Content, todo.Priority, todo.SharedWith ?? new List<string>(),
+            todo.IsCompleted);
+    }
+
+    [HttpPut]
+    [Authorize]
+    public async Task Update([FromBody] UpdateTodoRequest todo)
+    {
+        await _service.UpdateAsync(todo.Id, todo.Content, todo.Priority, todo.SharedWith ?? new List<string>(),
+            todo.IsCompleted);
+    }
+
+
+    [HttpDelete("{id}")]
+    [Authorize]
+    public async Task Delete([FromRoute] string id)
+    {
+        await _service.DeleteAsync(id);
+    }
+
+    [HttpGet]
+    [Authorize]
+    public async Task<IEnumerable<TodoDocument>> GetTodos()
+    {
+        return await _service.GetTodosOfCurrentUser();
+    }
+
+    [HttpGet("{id}")]
+    [Authorize]
+    public async Task<IActionResult> GetTodoById([FromRoute] string id)
+    {
+        try
         {
-            _logger = logger;
-            _service = service;
+            return Ok(await _service.GetTodoById(id));
         }
-
-
-        [HttpPost]
-        [Authorize]
-        public async Task Create([FromBody] CreateTodoRequest todo)
+        catch
         {
-            await _service.CreateAsync(todo.Content, todo.Priority, todo.SharedWith ?? new List<string>(), todo.IsCompleted);
-        }
-
-        [HttpPut]
-        [Authorize]
-        public async Task Update([FromBody] UpdateTodoRequest todo)
-        {
-            await _service.UpdateAsync(todo.Id, todo.Content, todo.Priority, todo.SharedWith ?? new List<string>(), todo.IsCompleted);
-        }
-        
-        
-        [HttpDelete("{id}")]
-        [Authorize]
-        public async Task Delete([FromRoute]string id)
-        {
-            await _service.DeleteAsync(id);
-        }
-
-        [HttpGet]
-        [Authorize]
-        public async Task<IEnumerable<TodoDocument>> GetTodos()
-        {
-            return await _service.GetTodosOfCurrentUser();
-        }
-
-        [HttpGet("{id}")]
-        [Authorize]
-        public async Task<IActionResult> GetTodoById([FromRoute] string id)
-        {
-            try
-            {
-                return Ok(await _service.GetTodoById(id));
-            }
-            catch
-            {
-                return NotFound();
-            }
+            return NotFound();
         }
     }
 }

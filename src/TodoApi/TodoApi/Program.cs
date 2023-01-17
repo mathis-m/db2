@@ -1,5 +1,4 @@
 using System.Text;
-using IdentityMongo.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -7,8 +6,10 @@ using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 using TodoApi.Configurations;
 using TodoApi.JsonConverters;
-using TodoApi.Mongo;
-using TodoApi.Mongo.Repositories;
+using TodoApi.Models;
+using TodoApi.Repositories;
+using TodoApi.Repositories.Mongo;
+using TodoApi.Repositories.Mongo.Repositories;
 using TodoApi.Services;
 using TodoApi.Swagger;
 
@@ -48,7 +49,7 @@ builder.Services.Configure<IdentityOptions>(options =>
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: MyAllowSpecificOrigins,
+    options.AddPolicy(MyAllowSpecificOrigins,
         policy =>
         {
             policy.WithOrigins("http://localhost:3000")
@@ -67,7 +68,7 @@ builder.Services
     {
         options.SaveToken = true;
         options.RequireHttpsMetadata = false;
-        options.TokenValidationParameters = new TokenValidationParameters()
+        options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
@@ -105,7 +106,7 @@ builder.Services.AddSwaggerGen(c =>
         Name = "Authorization",
         Type = SecuritySchemeType.ApiKey
     });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
@@ -136,22 +137,16 @@ builder.Services.AddSingleton<IMongoClient>(s =>
 );
 
 // Repositories
-builder.Services.AddScoped<IMongoRepository<TodoDocument>, MongoRepository<TodoDocument>>();
-builder.Services.AddScoped<IMongoRepository<UserDocument>, MongoRepository<UserDocument>>();
+builder.Services.AddScoped<IRepository<TodoDocument>, MongoRepository<TodoDocument>>();
+builder.Services.AddScoped<IRepository<UserDocument>, MongoRepository<UserDocument>>();
 
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-}
+if (app.Environment.IsDevelopment()) app.UseDeveloperExceptionPage();
 app.UseSwagger();
-app.UseSwaggerUI(opt =>
-{
-    opt.EnablePersistAuthorization();
-});
+app.UseSwaggerUI(opt => { opt.EnablePersistAuthorization(); });
 app.UseRouting();
 app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthentication();

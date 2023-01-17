@@ -1,12 +1,12 @@
-﻿namespace TodoApi.Mongo.Repositories;
+﻿namespace TodoApi.Repositories.Mongo;
 
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
 public class BsonCollectionAttribute : Attribute
 {
-    public string CollectionName { get; }
-
     public BsonCollectionAttribute(string collectionName)
     {
         CollectionName = collectionName;
     }
+
+    public string CollectionName { get; }
 }

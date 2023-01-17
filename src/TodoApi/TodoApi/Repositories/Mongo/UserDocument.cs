@@ -1,6 +1,4 @@
-﻿using TodoApi.Mongo.Repositories;
-
-namespace TodoApi.Mongo;
+﻿namespace TodoApi.Repositories.Mongo;
 
 [BsonCollection("user")]
 public class UserDocument : Document

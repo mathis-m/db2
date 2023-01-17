@@ -1,6 +1,6 @@
 ﻿using MongoDB.Bson;
 
-namespace TodoApi.Mongo.Repositories;
+namespace TodoApi.Repositories.Mongo;
 
 public abstract class Document : IDocument
 {

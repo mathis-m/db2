@@ -1,12 +1,9 @@
 ﻿using AspNetCore.Identity.MongoDbCore.Models;
 using MongoDbGenericRepository.Attributes;
-using System;
 
-namespace IdentityMongo.Models
+namespace TodoApi.Models;
+
+[CollectionName("Roles")]
+public class ApplicationRole : MongoIdentityRole<Guid>
 {
-    [CollectionName("Roles")]
-    public class ApplicationRole : MongoIdentityRole<Guid>
-    {
-
-    }
 }

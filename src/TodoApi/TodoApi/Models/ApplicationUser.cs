@@ -1,11 +1,9 @@
 ﻿using AspNetCore.Identity.MongoDbCore.Models;
 using MongoDbGenericRepository.Attributes;
-using System;
 
-namespace IdentityMongo.Models
+namespace TodoApi.Models;
+
+[CollectionName("Users")]
+public class ApplicationUser : MongoIdentityUser<Guid>
 {
-    [CollectionName("Users")]
-    public class ApplicationUser : MongoIdentityUser<Guid>
-    {
-    }
 }
